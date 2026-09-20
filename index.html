@@ -44,8 +44,12 @@
   }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(-6px);} to { opacity: 1; transform: translateY(0);} }
   #list li input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: #667eea; }
-  #list li .text { flex: 1; font-size: 15px; color: #333; word-break: break-all; }
+  #list li .text { flex: 1; font-size: 15px; color: #333; word-break: break-all; cursor: default; }
   #list li.done .text { text-decoration: line-through; color: #bbb; }
+  .edit-input {
+    flex: 1; padding: 6px 10px; border: 2px solid #667eea;
+    border-radius: 6px; font-size: 15px; outline: none;
+  }
   .del-btn {
     background: none; border: none; color: #ccc; font-size: 18px;
     cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: all .2s;
@@ -86,7 +90,6 @@
     if (tasks.length === 0) {
       list.innerHTML = '<li class="empty">还没有任务，添加一个吧 ✨</li>';
     }
-    // 未完成的排上面，已完成的沉到底部（各自内部保持原有先后顺序）
     const sorted = tasks
       .map((task, i) => ({ task, i }))
       .sort((a, b) => Number(a.task.done) - Number(b.task.done));
@@ -107,6 +110,36 @@
       const span = document.createElement('span');
       span.className = 'text';
       span.textContent = task.text;
+      span.title = '双击可编辑';
+      span.addEventListener('dblclick', () => {
+        const editInput = document.createElement('input');
+        editInput.type = 'text';
+        editInput.className = 'edit-input';
+        editInput.value = task.text;
+        editInput.maxLength = 100;
+
+        let finished = false;
+        function commit(saveChanges) {
+          if (finished) return;
+          finished = true;
+          if (saveChanges) {
+            const newText = editInput.value.trim();
+            if (newText) tasks[i].text = newText;
+          }
+          save();
+          render();
+        }
+
+        editInput.addEventListener('keydown', e => {
+          if (e.key === 'Enter') commit(true);
+          if (e.key === 'Escape') commit(false);
+        });
+        editInput.addEventListener('blur', () => commit(true));
+
+        li.replaceChild(editInput, span);
+        editInput.focus();
+        editInput.select();
+      });
 
       const del = document.createElement('button');
       del.className = 'del-btn';
