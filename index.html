@@ -74,6 +74,7 @@
 
 <script>
   let tasks = JSON.parse(localStorage.getItem('my-todos') || '[]');
+
   const list = document.getElementById('list');
   const input = document.getElementById('taskInput');
   const countEl = document.getElementById('count');
@@ -82,25 +83,47 @@
 
   function render() {
     list.innerHTML = '';
-    if (tasks.length === 0) list.innerHTML = '<li class="empty">还没有任务，添加一个吧 ✨</li>';
-    tasks.forEach((task, i) => {
+    if (tasks.length === 0) {
+      list.innerHTML = '<li class="empty">还没有任务，添加一个吧 ✨</li>';
+    }
+    // 未完成的排上面，已完成的沉到底部（各自内部保持原有先后顺序）
+    const sorted = tasks
+      .map((task, i) => ({ task, i }))
+      .sort((a, b) => Number(a.task.done) - Number(b.task.done));
+
+    sorted.forEach(({ task, i }) => {
       const li = document.createElement('li');
       if (task.done) li.classList.add('done');
+
       const checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
       checkbox.checked = task.done;
-      checkbox.addEventListener('change', () => { tasks[i].done = checkbox.checked; save(); render(); });
+      checkbox.addEventListener('change', () => {
+        tasks[i].done = checkbox.checked;
+        save();
+        render();
+      });
+
       const span = document.createElement('span');
       span.className = 'text';
       span.textContent = task.text;
+
       const del = document.createElement('button');
       del.className = 'del-btn';
       del.textContent = '✕';
       del.title = '删除';
-      del.addEventListener('click', () => { tasks.splice(i, 1); save(); render(); });
-      li.appendChild(checkbox); li.appendChild(span); li.appendChild(del);
+      del.addEventListener('click', () => {
+        tasks.splice(i, 1);
+        save();
+        render();
+      });
+
+      li.appendChild(checkbox);
+      li.appendChild(span);
+      li.appendChild(del);
       list.appendChild(li);
     });
+
     const undone = tasks.filter(t => !t.done).length;
     countEl.textContent = `共 ${tasks.length} 项，未完成 ${undone} 项`;
   }
@@ -109,12 +132,22 @@
     const text = input.value.trim();
     if (!text) return;
     tasks.unshift({ text, done: false });
-    input.value = ''; save(); render(); input.focus();
+    input.value = '';
+    save();
+    render();
+    input.focus();
   }
 
   document.getElementById('addBtn').addEventListener('click', addTask);
-  input.addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
-  document.getElementById('clearDone').addEventListener('click', () => { tasks = tasks.filter(t => !t.done); save(); render(); });
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') addTask();
+  });
+
+  document.getElementById('clearDone').addEventListener('click', () => {
+    tasks = tasks.filter(t => !t.done);
+    save();
+    render();
+  });
 
   render();
 </script>
