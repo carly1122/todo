@@ -5,30 +5,79 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>待办清单</title>
 <style>
+  /* ===== 白天主题（默认）===== */
+  :root {
+    --body-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --app-bg: #ffffff;
+    --app-shadow: 0 20px 60px rgba(0,0,0,.3);
+    --title-color: #333333;
+    --subtitle-color: #999999;
+    --task-color: #333333;
+    --done-color: #bbbbbb;
+    --border-color: #f0f0f0;
+    --input-bg: #ffffff;
+    --input-border: #e0e0e0;
+    --input-text: #333333;
+    --empty-color: #cccccc;
+  }
+  /* ===== 夜晚主题 ===== */
+  body.dark {
+    --body-bg: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    --app-bg: #1e1e30;
+    --app-shadow: 0 20px 60px rgba(0,0,0,.6);
+    --title-color: #e8e8f0;
+    --subtitle-color: #77778a;
+    --task-color: #d8d8e4;
+    --done-color: #55556a;
+    --border-color: #33334a;
+    --input-bg: #2a2a40;
+    --input-border: #44445e;
+    --input-text: #e0e0ee;
+    --empty-color: #55556a;
+  }
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--body-bg);
     min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: flex-start;
     padding: 40px 16px;
+    transition: background .3s;
   }
   .app {
+    position: relative;
     width: 100%;
     max-width: 480px;
-    background: #fff;
+    background: var(--app-bg);
     border-radius: 16px;
-    box-shadow: 0 20px 60px rgba(0,0,0,.3);
+    box-shadow: var(--app-shadow);
     padding: 32px 28px;
+    transition: background .3s;
   }
-  h1 { font-size: 24px; color: #333; text-align: center; margin-bottom: 4px; }
-  .subtitle { text-align: center; color: #999; font-size: 13px; margin-bottom: 24px; }
+  #themeBtn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 8px;
+    transition: transform .2s;
+  }
+  #themeBtn:hover { transform: scale(1.2); }
+  h1 { font-size: 24px; color: var(--title-color); text-align: center; margin-bottom: 4px; transition: color .3s; }
+  .subtitle { text-align: center; color: var(--subtitle-color); font-size: 13px; margin-bottom: 24px; transition: color .3s; }
   .input-row { display: flex; gap: 10px; margin-bottom: 20px; }
   #taskInput {
-    flex: 1; padding: 12px 16px; border: 2px solid #e0e0e0;
-    border-radius: 10px; font-size: 15px; outline: none; transition: border-color .2s;
+    flex: 1; padding: 12px 16px;
+    background: var(--input-bg); border: 2px solid var(--input-border);
+    border-radius: 10px; font-size: 15px; color: var(--input-text);
+    outline: none; transition: border-color .2s, background .3s;
   }
   #taskInput:focus { border-color: #667eea; }
   #addBtn {
@@ -39,15 +88,16 @@
   #list { list-style: none; }
   #list li {
     display: flex; align-items: center; gap: 12px;
-    padding: 14px 10px; border-bottom: 1px solid #f0f0f0;
+    padding: 14px 10px; border-bottom: 1px solid var(--border-color);
     animation: fadeIn .25s ease;
   }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(-6px);} to { opacity: 1; transform: translateY(0);} }
   #list li input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: #667eea; }
-  #list li .text { flex: 1; font-size: 15px; color: #333; word-break: break-all; cursor: default; }
-  #list li.done .text { text-decoration: line-through; color: #bbb; }
+  #list li .text { flex: 1; font-size: 15px; color: var(--task-color); word-break: break-all; cursor: default; transition: color .3s; }
+  #list li.done .text { text-decoration: line-through; color: var(--done-color); }
   .edit-input {
     flex: 1; padding: 6px 10px; border: 2px solid #667eea;
+    background: var(--input-bg); color: var(--input-text);
     border-radius: 6px; font-size: 15px; outline: none;
   }
   .del-btn {
@@ -57,11 +107,12 @@
   .del-btn:hover { color: #e74c3c; background: #fdecea; }
   .footer {
     margin-top: 20px; display: flex; justify-content: space-between;
-    align-items: center; font-size: 13px; color: #999; gap: 10px; flex-wrap: wrap;
+    align-items: center; font-size: 13px; color: var(--subtitle-color); gap: 10px; flex-wrap: wrap;
+    transition: color .3s;
   }
   .footer-btns { display: flex; gap: 12px; }
   #clearDone, #clearAll {
-    background: none; border: none; color: #999; font-size: 13px;
+    background: none; border: none; color: var(--subtitle-color); font-size: 13px;
     cursor: pointer; padding: 4px 6px; border-radius: 6px; transition: all .2s;
   }
   #clearDone:hover { color: #e67e22; }
@@ -70,11 +121,12 @@
     color: #fff; background: #e74c3c;
     padding: 4px 10px;
   }
-  .empty { text-align: center; color: #ccc; padding: 30px 0; font-size: 14px; }
+  .empty { text-align: center; color: var(--empty-color); padding: 30px 0; font-size: 14px; transition: color .3s; }
 </style>
 </head>
 <body>
   <div class="app">
+    <button id="themeBtn" title="切换主题">🌙</button>
     <h1>📝 待办清单</h1>
     <p class="subtitle">数据保存在浏览器本地，关闭也不会丢</p>
     <div class="input-row">
@@ -98,8 +150,24 @@
   const input = document.getElementById('taskInput');
   const countEl = document.getElementById('count');
   const clearAllBtn = document.getElementById('clearAll');
+  const themeBtn = document.getElementById('themeBtn');
 
   function save() { localStorage.setItem('my-todos', JSON.stringify(tasks)); }
+
+  // ===== 主题切换 =====
+  function applyTheme(mode) {
+    document.body.classList.toggle('dark', mode === 'dark');
+    themeBtn.textContent = mode === 'dark' ? '☀️' : '🌙';
+    themeBtn.title = mode === 'dark' ? '切换到浅色' : '切换到深色';
+  }
+  let theme = localStorage.getItem('my-todos-theme') || 'light';
+  applyTheme(theme);
+
+  themeBtn.addEventListener('click', () => {
+    theme = theme === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('my-todos-theme', theme);
+    applyTheme(theme);
+  });
 
   function render() {
     list.innerHTML = '';
